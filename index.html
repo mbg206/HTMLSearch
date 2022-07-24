@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="http://localhost:8080">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Search</title>
+
+    <style>
+        #bar {
+            text-align: center;
+            padding: 16px;
+            position: sticky;
+        }
+        #bar input, #bar button {
+            font-size: 24px;
+        }
+        #bar input {
+            width: calc(100% - 256px);
+        }
+        .result {
+            font-size: 32px;
+            padding: 16px 32px;
+        }
+    </style>
+</head>
+<body>
+    <div id="bar">
+        <input type="text" id="query" placeholder="Query">
+        <button id="search">Search</button>
+    </div>
+
+    <div id="results">
+    </div>
+
+    <script>
+let query = document.getElementById("query");
+
+let search = document.getElementById("search");
+
+search.onclick = async () => {
+    if (query.value.length == 0) return;
+
+    let resultsArea = document.getElementById("results");
+    resultsArea.innerHTML = "";
+    query.setAttribute("placeholder", "Searching...");
+
+    let results;
+    try {
+        results = fetch(`/search?q=${encodeURIComponent(query.value)}`);
+        query.value = "";
+
+        results = await (await results).json();
+    }
+    catch(e) {
+    query.setAttribute("placeholder", "Error");
+        return;
+    }
+
+    results.forEach(f => {
+        let result = document.createElement("div");
+        result.classList.add("result");
+        let anchor = document.createElement("a");
+        anchor.href = `file:///${f.path}`;
+        anchor.innerHTML = f.title;
+
+        result.appendChild(anchor);
+        resultsArea.append(result);
+    });
+}
+
+query.onkeydown = (e) => {
+    if (e.key === "Enter") search.onclick();
+}
+    </script>
+</body>
+</html>
